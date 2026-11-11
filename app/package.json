@@ -1,0 +1,13 @@
+{
+  "name": "notas-app",
+  "version": "1.0.0",
+  "description": "Aplicación web (frontend + API) que guarda y lee notas en PostgreSQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.21.1",
+    "pg": "8.13.1"
+  }
+}

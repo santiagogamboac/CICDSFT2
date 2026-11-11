@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notas con Docker</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; background: #f4f6fb; color: #1d2433; }
+    h1 { color: #1d63ed; }
+    .card { background: #fff; border-radius: 10px; padding: 1rem 1.25rem; box-shadow: 0 2px 6px rgba(0,0,0,.08); margin-bottom: 1rem; }
+    form { display: flex; gap: .5rem; }
+    input { flex: 1; padding: .6rem; border: 1px solid #c9d1e0; border-radius: 6px; }
+    button { padding: .6rem 1rem; border: 0; border-radius: 6px; background: #1d63ed; color: #fff; cursor: pointer; }
+    ul { list-style: none; padding: 0; }
+    li { display: flex; justify-content: space-between; align-items: center; padding: .5rem 0; border-bottom: 1px solid #eef1f6; }
+    small { color: #6b7488; }
+    .ok { color: #16833a; } .err { color: #c62828; }
+  </style>
+</head>
+<body>
+  <h1>Notas con Docker</h1>
+  <div class="card"><strong>Estado:</strong> <span id="estado">comprobando…</span></div>
+  <div class="card">
+    <form id="form">
+      <input id="texto" placeholder="Escribe una nota y guárdala en PostgreSQL" required>
+      <button>Guardar</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Notas guardadas en la base de datos</h3>
+    <ul id="lista"></ul>
+  </div>
+<script>
+async function estado() {
+  const el = document.getElementById('estado');
+  try {
+    const d = await (await fetch('/api/health')).json();
+    el.className = d.db === 'ok' ? 'ok' : 'err';
+    el.textContent = d.db === 'ok'
+      ? 'App conectada a la base de datos (host "' + d.db_host + '", IP ' + d.db_ip + ')'
+      : 'Sin conexión a la base de datos: ' + d.detalle;
+  } catch (e) { el.className = 'err'; el.textContent = 'App no disponible'; }
+}
+async function cargar() {
+  const notas = await (await fetch('/api/notas')).json();
+  const ul = document.getElementById('lista');
+  ul.innerHTML = '';
+  for (const n of notas) {
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    span.textContent = '#' + n.id + ' ' + n.texto + ' ';
+    const small = document.createElement('small');
+    small.textContent = new Date(n.creado).toLocaleString();
+    span.appendChild(document.createElement('br'));
+    span.appendChild(small);
+    const b = document.createElement('button');
+    b.textContent = 'Borrar';
+    b.onclick = async () => { await fetch('/api/notas/' + n.id, { method: 'DELETE' }); cargar(); };
+    li.appendChild(span); li.appendChild(b); ul.appendChild(li);
+  }
+}
+document.getElementById('form').onsubmit = async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('texto');
+  await fetch('/api/notas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ texto: input.value })
+  });
+  input.value = '';
+  cargar();
+};
+estado();
+cargar();
+</script>
+</body>
+</html>
