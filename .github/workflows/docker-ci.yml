@@ -1,0 +1,42 @@
+name: Docker CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Crear .env para CI (valores de prueba, no son secretos reales)
+        run: cp .env.example .env
+
+      - name: Validar docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Construir las imágenes
+        run: docker compose build
+
+      - name: Levantar los contenedores
+        run: docker compose up -d --wait
+
+      - name: Probar comunicación app -> db (guardar y leer)
+        run: |
+          curl -fsS http://localhost:8080/api/health
+          curl -fsS -X POST -H "Content-Type: application/json" \
+               -d '{"texto":"nota desde GitHub Actions"}' http://localhost:8080/api/notas
+          curl -fsS http://localhost:8080/api/notas | grep "nota desde GitHub Actions"
+
+      - name: Ver contenedores y logs
+        if: always()
+        run: |
+          docker ps
+          docker compose logs
+
+      - name: Apagar
+        if: always()
+        run: docker compose down -v
