@@ -25,11 +25,7 @@ jobs:
         run: docker compose up -d --wait
 
       - name: Probar comunicación app -> db (guardar y leer)
-        run: |
-          curl -fsS http://localhost:8080/api/health
-          curl -fsS -X POST -H "Content-Type: application/json" \
-               -d '{"texto":"nota desde GitHub Actions"}' http://localhost:8080/api/notas
-          curl -fsS http://localhost:8080/api/notas | grep "nota desde GitHub Actions"
+        run: sh tests/test_comunicacion.sh
 
       - name: Ver contenedores y logs
         if: always()
