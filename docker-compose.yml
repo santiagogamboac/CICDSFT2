@@ -28,7 +28,7 @@ services:
     restart: unless-stopped
     environment:
       APP_PORT: 3000
-      DB_HOST: localhost
+      DB_HOST: db # NOMBRE DEL SERVICIO, no localhost ni IP
       DB_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
