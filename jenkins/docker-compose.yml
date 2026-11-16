@@ -1,0 +1,30 @@
+# Jenkins como gestor de operaciones de los contenedores de la Entrega 1.
+# Levantar:  docker compose -f jenkins/docker-compose.yml up -d --build
+services:
+  jenkins:
+    build: .
+    image: jenkins-docker:2.580.2-lts
+    container_name: jenkins
+    restart: unless-stopped
+    # root solo para poder usar el socket de Docker del host (entorno de laboratorio)
+    user: root
+    ports:
+      - "8080:8080"     # interfaz web
+      - "50000:50000"   # agentes entrantes (JNLP)
+    environment:
+      TZ: America/Bogota
+      JAVA_OPTS: "-Duser.timezone=America/Bogota"
+    volumes:
+      - jenkins_home:/var/jenkins_home                 # configuración, plugins, jobs e historial
+      - /var/run/docker.sock:/var/run/docker.sock      # Jenkins usa el Docker del host
+    networks:
+      - jenkins_net
+
+networks:
+  jenkins_net:
+    name: jenkins_net
+    driver: bridge
+
+volumes:
+  jenkins_home:
+    name: jenkins_home
