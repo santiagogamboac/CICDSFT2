@@ -1,7 +1,8 @@
 services:
-  # Contenedor 2: base de datos PostgreSQL
+  # Contenedor 2: base de datos PostgreSQL (Dockerfile propio en ./db, incluye init.sql)
   db:
-    image: postgres:16.4-alpine
+    build: ./db
+    image: notas-db:1.0.0
     container_name: notas-db
     restart: unless-stopped
     environment:
@@ -10,7 +11,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - db_data:/var/lib/postgresql/data # persistencia de los datos
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - red_notas
     healthcheck:
